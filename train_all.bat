@@ -6,12 +6,14 @@ echo Aerial AI - Complete Training Pipeline
 echo ==========================================
 
 REM Configuration
-set EPOCHS_SEMANTIC=20
+set EPOCHS_SEMANTIC=15
 set EPOCHS_INSTANCE=10
-set BATCH_SIZE_SEMANTIC=4
-set BATCH_SIZE_INSTANCE=2
+set BATCH_SIZE_SEMANTIC=2
+set BATCH_SIZE_INSTANCE=1
 set LEARNING_RATE_SEMANTIC=5e-5
 set LEARNING_RATE_INSTANCE=1e-5
+set GRADIENT_ACCUMULATION=2
+set NUM_WORKERS=0
 
 REM Paths - Update these to your dataset locations
 set SEMANTIC_TRAIN_IMG=.\data\aerial_segmentation\train\images
@@ -39,6 +41,8 @@ python train_semantic.py ^
     --epochs %EPOCHS_SEMANTIC% ^
     --batch_size %BATCH_SIZE_SEMANTIC% ^
     --learning_rate %LEARNING_RATE_SEMANTIC% ^
+    --gradient_accumulation_steps %GRADIENT_ACCUMULATION% ^
+    --num_workers %NUM_WORKERS% ^
     --num_classes 4 ^
     --output_dir ".\output\semantic" ^
     --log_dir ".\logs\semantic" ^
@@ -56,6 +60,8 @@ python train_instance.py ^
     --epochs %EPOCHS_INSTANCE% ^
     --batch_size %BATCH_SIZE_INSTANCE% ^
     --learning_rate %LEARNING_RATE_INSTANCE% ^
+    --gradient_accumulation_steps %GRADIENT_ACCUMULATION% ^
+    --num_workers %NUM_WORKERS% ^
     --num_classes 2 ^
     --output_dir ".\output\instance" ^
     --log_dir ".\logs\instance" ^

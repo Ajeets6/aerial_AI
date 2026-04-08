@@ -8,10 +8,12 @@ echo "=========================================="
 # Configuration
 EPOCHS_SEMANTIC=20
 EPOCHS_INSTANCE=10
-BATCH_SIZE_SEMANTIC=4
-BATCH_SIZE_INSTANCE=2
+BATCH_SIZE_SEMANTIC=2
+BATCH_SIZE_INSTANCE=1
 LEARNING_RATE_SEMANTIC=5e-5
 LEARNING_RATE_INSTANCE=1e-5
+GRADIENT_ACCUMULATION=2
+NUM_WORKERS=0
 
 # Paths - Update these to your dataset locations
 SEMANTIC_TRAIN_IMG="./data/aerial_segmentation/train/images"
@@ -39,6 +41,8 @@ python train_semantic.py \
     --epochs $EPOCHS_SEMANTIC \
     --batch_size $BATCH_SIZE_SEMANTIC \
     --learning_rate $LEARNING_RATE_SEMANTIC \
+    --gradient_accumulation_steps $GRADIENT_ACCUMULATION \
+    --num_workers $NUM_WORKERS \
     --num_classes 4 \
     --output_dir "./output/semantic" \
     --log_dir "./logs/semantic" \
@@ -56,6 +60,8 @@ python train_instance.py \
     --epochs $EPOCHS_INSTANCE \
     --batch_size $BATCH_SIZE_INSTANCE \
     --learning_rate $LEARNING_RATE_INSTANCE \
+    --gradient_accumulation_steps $GRADIENT_ACCUMULATION \
+    --num_workers $NUM_WORKERS \
     --num_classes 2 \
     --output_dir "./output/instance" \
     --log_dir "./logs/instance" \

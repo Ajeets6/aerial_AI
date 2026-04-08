@@ -5,3 +5,4 @@ __pycache__/
 *.pyc
 test_*
 check_*
+output/
