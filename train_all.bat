@@ -22,9 +22,9 @@ set SEMANTIC_VAL_IMG=.\data\aerial_segmentation\val\images
 set SEMANTIC_VAL_MASK=.\data\aerial_segmentation\val\masks
 
 set INSTANCE_TRAIN_IMG=.\data\solar_panels\train\images
-set INSTANCE_TRAIN_ANN=.\data\solar_panels\train\annotations
+set INSTANCE_TRAIN_ANN=.\data\solar_panels\train\masks
 set INSTANCE_VAL_IMG=.\data\solar_panels\val\images
-set INSTANCE_VAL_ANN=.\data\solar_panels\val\annotations
+set INSTANCE_VAL_ANN=.\data\solar_panels\val\masks
 
 echo.
 echo Checking GPU availability...
@@ -54,9 +54,9 @@ echo Step 2/2: Training Instance Segmentation Model (Mask2Former)
 echo ==========================================
 python train_instance.py ^
     --train_image_dir "%INSTANCE_TRAIN_IMG%" ^
-    --train_annotation_dir "%INSTANCE_TRAIN_ANN%" ^
+    --train_mask_dir "%INSTANCE_TRAIN_ANN%" ^
     --val_image_dir "%INSTANCE_VAL_IMG%" ^
-    --val_annotation_dir "%INSTANCE_VAL_ANN%" ^
+    --val_mask_dir "%INSTANCE_VAL_ANN%" ^
     --epochs %EPOCHS_INSTANCE% ^
     --batch_size %BATCH_SIZE_INSTANCE% ^
     --learning_rate %LEARNING_RATE_INSTANCE% ^

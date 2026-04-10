@@ -9,7 +9,7 @@ def check_item(name, condition, fix_hint=""):
     status = "✓" if condition else "✗"
     color = "\033[92m" if condition else "\033[91m"  # Green or Red
     reset = "\033[0m"
-    
+
     print(f"{color}{status}{reset} {name}")
     if not condition and fix_hint:
         print(f"  → {fix_hint}")
@@ -20,12 +20,12 @@ def main():
     print("🔍 Aerial AI - Pre-Training Verification")
     print("="*60)
     print()
-    
+
     all_good = True
-    
+
     # Check Python packages
     print("📦 Required Packages:")
-    packages = ['torch', 'transformers', 'PIL', 'cv2', 'numpy', 'dotenv', 'streamlit', 'tqdm']
+    packages = ['torch', 'transformers', 'PIL', 'cv2', 'numpy', 'dotenv', 'streamlit', 'tqdm', 'tifffile']
     for pkg in packages:
         try:
             if pkg == 'PIL':
@@ -39,14 +39,14 @@ def main():
             check_item(pkg, True)
         except ImportError:
             all_good &= check_item(pkg, False, f"Run: pip install {pkg}")
-    
+
     print()
-    
+
     # Check .env file
     print("🔐 Configuration:")
     env_exists = Path(".env").exists()
     all_good &= check_item(".env file exists", env_exists, "Create .env from .env.example")
-    
+
     if env_exists:
         from dotenv import load_dotenv
         import os
@@ -54,9 +54,9 @@ def main():
         token = os.getenv("KAGGLE_API_TOKEN")
         has_token = token and token.startswith("KGAT_")
         all_good &= check_item("Kaggle API token set", has_token, "Add KAGGLE_API_TOKEN to .env")
-    
+
     print()
-    
+
     # Check data directories
     print("📂 Data Structure:")
     data_checks = [
@@ -64,36 +64,54 @@ def main():
         ("data/aerial_segmentation/train/masks", "Training masks"),
         ("data/aerial_segmentation/val/images", "Validation images"),
         ("data/aerial_segmentation/val/masks", "Validation masks"),
+        ("data/solar_panels/train/images", "Instance training images"),
+        ("data/solar_panels/train/masks", "Instance training masks"),
+        ("data/solar_panels/val/images", "Instance validation images"),
+        ("data/solar_panels/val/masks", "Instance validation masks"),
     ]
-    
+
     for path_str, name in data_checks:
         path = Path(path_str)
         exists = path.exists()
         all_good &= check_item(name, exists, f"Run: python organize_data.py --datasets aerial")
-    
+
     print()
-    
+
     # Check image counts
     print("📊 Dataset Statistics:")
     train_img_path = Path("data/aerial_segmentation/train/images")
     val_img_path = Path("data/aerial_segmentation/val/images")
-    
+    instance_train_path = Path("data/solar_panels/train/images")
+    instance_val_path = Path("data/solar_panels/val/images")
+
     if train_img_path.exists():
         train_count = len(list(train_img_path.glob("*.jpg")))
         has_train = train_count > 0
         all_good &= check_item(f"Training images: {train_count}", has_train, "Run: python organize_data.py --datasets aerial")
     else:
         all_good &= check_item("Training images: 0", False, "Run: python organize_data.py --datasets aerial")
-    
+
     if val_img_path.exists():
         val_count = len(list(val_img_path.glob("*.jpg")))
         has_val = val_count > 0
         all_good &= check_item(f"Validation images: {val_count}", has_val, "Run: python organize_data.py --datasets aerial")
     else:
         all_good &= check_item("Validation images: 0", False, "Run: python organize_data.py --datasets aerial")
-    
+
+    if instance_train_path.exists():
+        instance_train_count = len(list(instance_train_path.glob("*")))
+        all_good &= check_item(f"Instance training images: {instance_train_count}", instance_train_count > 0, "Run: python organize_data.py --datasets solar")
+    else:
+        all_good &= check_item("Instance training images: 0", False, "Run: python organize_data.py --datasets solar")
+
+    if instance_val_path.exists():
+        instance_val_count = len(list(instance_val_path.glob("*")))
+        all_good &= check_item(f"Instance validation images: {instance_val_count}", instance_val_count > 0, "Run: python organize_data.py --datasets solar")
+    else:
+        all_good &= check_item("Instance validation images: 0", False, "Run: python organize_data.py --datasets solar")
+
     print()
-    
+
     # Check output directories
     print("📁 Output Directories:")
     output_dirs = [
@@ -102,16 +120,16 @@ def main():
         "logs/semantic",
         "logs/instance"
     ]
-    
+
     for dir_path in output_dirs:
         path = Path(dir_path)
         if not path.exists():
             path.mkdir(parents=True, exist_ok=True)
         check_item(dir_path, path.exists())
-    
+
     print()
     print("="*60)
-    
+
     if all_good:
         print("✅ All checks passed! Ready to train.")
         print()
@@ -131,7 +149,7 @@ def main():
         print("  3. Download data: python download_datasets.py --datasets all")
         print("  4. Organize data: python organize_data.py --datasets aerial")
         sys.exit(1)
-    
+
     print("="*60)
 
 if __name__ == "__main__":
