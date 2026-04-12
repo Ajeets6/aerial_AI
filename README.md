@@ -81,8 +81,8 @@ The app will open in your browser at `http://localhost:8501`
 | Purpose | Dataset | Classes |
 |---------|---------|---------|
 | Semantic training | [Kaggle Aerial Segmentation](https://www.kaggle.com/datasets/humansintheloop/semantic-segmentation-of-aerial-imagery) | building, road, water |
-| Instance training | [solar-antwerp](https://github.com/patrick-tobben/solar-antwerp) | solar panels |
-| Indian demo | [IndiaSat](https://www.kaggle.com/datasets/abhinav05/indiasat) | built-up, water bodies |
+| Instance training | [Solar Plants Brazil](https://huggingface.co/datasets/FederCO23/solar-plants-brazil) | solar panels (4-band GeoTIFF, binary masks) |
+| Indian demo | [Mendeley Indian demo dataset](https://data.mendeley.com/public-files/datasets/xj2v49zt26/files/caf935d8-ef3d-42c0-a7da-0ccc85f10669/file_downloaded) | Indian aerial imagery demo |
 
 **Quick Download**: Run `./download_datasets.sh` (or `.bat` on Windows) to automatically download all datasets. See [DATASET_GUIDE.md](DATASET_GUIDE.md) for details.
 
@@ -94,7 +94,7 @@ To fine-tune models on aerial datasets:
 # Download datasets first
 ./download_datasets.sh
 
-# Organize data for training  
+# Organize data for training
 python organize_data.py --datasets aerial
 
 # Train both models
