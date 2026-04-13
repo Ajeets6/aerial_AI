@@ -1,3 +1,9 @@
+import os
+
+# Prevent OpenMP duplicate runtime crash on Windows (common with torch + numpy/opencv stacks).
+if os.name == "nt":
+    os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
+
 import streamlit as st
 import torch
 from PIL import Image
@@ -146,8 +152,8 @@ with st.sidebar:
     st.markdown("---")
     st.info("💡 Upload an aerial image to start segmentation")
 
-# File uploader
-uploaded_file = st.file_uploader("Upload Aerial Image", type=['png', 'jpg', 'jpeg'])
+# File uploader (including TIFF for demo/remote-sensing datasets)
+uploaded_file = st.file_uploader("Upload Aerial Image", type=['png', 'jpg', 'jpeg', 'tif', 'tiff'])
 
 if uploaded_file is not None:
     # Load image
@@ -171,7 +177,7 @@ if uploaded_file is not None:
 
     with col1:
         st.subheader("Original Image")
-        st.image(image, use_container_width=True)
+        st.image(image, width=True)
 
     with col2:
         st.subheader(f"Highlighted: {selected_feature}")
@@ -187,7 +193,7 @@ if uploaded_file is not None:
                 # This is a placeholder - would need proper fine-tuning for aerial images
                 highlighted, mask = create_semantic_overlay(image, seg_mask, feature_idx)
 
-                st.image(highlighted, use_container_width=True)
+                st.image(highlighted, width=True)
 
                 # Statistics
                 stats = calculate_stats(mask)
@@ -201,7 +207,7 @@ if uploaded_file is not None:
 
                 highlighted, mask, num_panels = create_instance_overlay(image, instances)
 
-                st.image(highlighted, use_container_width=True)
+                st.image(highlighted, width=True)
 
                 # Statistics
                 st.markdown("### Statistics")

@@ -10,6 +10,8 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
+os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
+
 import cv2
 import numpy as np
 import torch
@@ -55,6 +57,8 @@ class SolarPlantsBrazilDataset(Dataset):
             + list(self.image_dir.glob("*.jpg"))
             + list(self.image_dir.glob("*.jpeg"))
         )
+
+        self.images = [image_path for image_path in self.images if self.load_instance_masks(image_path)]
 
         logging.info(f"Loaded {len(self.images)} images from {image_dir}")
 
@@ -140,30 +144,48 @@ class SolarPlantsBrazilDataset(Dataset):
         image = self._load_image(image_path)
 
         masks = self.load_instance_masks(image_path)
-        if not masks:
-            masks = [np.zeros((image.height, image.width), dtype=np.uint8)]
-
-        annotations = []
-        for mask_index, mask in enumerate(masks):
-            annotations.append({
-                "id": mask_index,
-                "category_id": 1,
-                "segmentation": mask,
-                "area": int(mask.sum()),
-                "bbox": self.get_bbox(mask),
-                "iscrowd": 0,
-            })
+        # Build an instance-id map expected by the current Mask2Former processor API.
+        # 0 is background; each connected component instance gets a unique ID >= 1.
+        instance_map = np.zeros((image.height, image.width), dtype=np.int32)
+        instance_id_to_semantic_id = {0: 0}
+        for mask_index, mask in enumerate(masks, start=1):
+            instance_map[mask > 0] = mask_index
+            instance_id_to_semantic_id[mask_index] = 1  # single foreground class: solar panel
 
         encoded_inputs = self.processor(
             images=image,
-            annotations=annotations,
+            segmentation_maps=instance_map,
+            instance_id_to_semantic_id=instance_id_to_semantic_id,
             return_tensors="pt",
         )
 
-        return {
-            key: value.squeeze(0) if isinstance(value, torch.Tensor) else value
-            for key, value in encoded_inputs.items()
-        }
+        mask_labels = encoded_inputs.get("mask_labels", [])
+        if mask_labels:
+            normalized_mask_labels = []
+            for mask in mask_labels:
+                if isinstance(mask, torch.Tensor):
+                    tensor_mask = mask.to(torch.float32)
+                else:
+                    tensor_mask = torch.as_tensor(mask, dtype=torch.float32)
+
+                if tensor_mask.ndim == 4 and tensor_mask.shape[1] == 1:
+                    tensor_mask = tensor_mask.squeeze(1)
+                elif tensor_mask.ndim == 2:
+                    tensor_mask = tensor_mask.unsqueeze(0)
+
+                normalized_mask_labels.append(tensor_mask)
+
+            encoded_inputs["mask_labels"] = torch.cat(normalized_mask_labels, dim=0)
+            encoded_inputs["class_labels"] = torch.ones(encoded_inputs["mask_labels"].shape[0], dtype=torch.int64)
+
+        normalized_outputs = {}
+        for key, value in encoded_inputs.items():
+            if key == "pixel_values" and isinstance(value, torch.Tensor):
+                normalized_outputs[key] = value.squeeze(0)
+            else:
+                normalized_outputs[key] = value
+
+        return normalized_outputs
 
     def get_bbox(self, mask):
         """Get bounding box from mask."""
@@ -183,24 +205,11 @@ def collate_fn(batch):
     if not batch:
         return {}
 
-    collated = {
-        "pixel_values": torch.stack([item["pixel_values"] for item in batch])
+    return {
+        "pixel_values": torch.stack([item["pixel_values"] for item in batch]),
+        "class_labels": [item["class_labels"] for item in batch if "class_labels" in item],
+        "mask_labels": [item["mask_labels"] for item in batch if "mask_labels" in item],
     }
-
-    for key in batch[0].keys():
-        if key == "pixel_values":
-            continue
-
-        values = [item[key] for item in batch if key in item]
-        if not values:
-            continue
-
-        if all(isinstance(value, torch.Tensor) and value.shape == values[0].shape for value in values):
-            collated[key] = torch.stack(values)
-        else:
-            collated[key] = values
-
-    return collated
 
 
 def train_epoch(model, dataloader, optimizer, lr_scheduler, device, logger, epoch, scaler, use_amp, gradient_accumulation_steps, max_grad_norm):
