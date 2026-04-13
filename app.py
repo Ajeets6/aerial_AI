@@ -177,7 +177,7 @@ if uploaded_file is not None:
 
     with col1:
         st.subheader("Original Image")
-        st.image(image, width=True)
+        st.image(image, width='stretch')
 
     with col2:
         st.subheader(f"Highlighted: {selected_feature}")
@@ -193,7 +193,7 @@ if uploaded_file is not None:
                 # This is a placeholder - would need proper fine-tuning for aerial images
                 highlighted, mask = create_semantic_overlay(image, seg_mask, feature_idx)
 
-                st.image(highlighted, width=True)
+                st.image(highlighted, width='stretch')
 
                 # Statistics
                 stats = calculate_stats(mask)
@@ -207,7 +207,7 @@ if uploaded_file is not None:
 
                 highlighted, mask, num_panels = create_instance_overlay(image, instances)
 
-                st.image(highlighted, width=True)
+                st.image(highlighted, width='stretch')
 
                 # Statistics
                 st.markdown("### Statistics")
@@ -223,22 +223,7 @@ if uploaded_file is not None:
 else:
     st.info("👆 Upload an aerial image to begin segmentation")
 
-    # Show example UI mockup
-    st.markdown("### Expected Output Preview")
-    st.code("""
-    ┌─────────────────────────────────────────────────────────────┐
-    │  Original Image              │  Highlighted (Buildings)     │
-    │  ┌─────────────────────┐    │  ┌─────────────────────┐    │
-    │  │                     │    │  │                     │    │
-    │  │   Aerial view       │    │  │  [Red overlay on    │    │
-    │  │                     │    │  │   building regions] │    │
-    │  └─────────────────────┘    │  └─────────────────────┘    │
-    │                                                             │
-    │  Statistics:                                                │
-    │  - Buildings area: 124,567 pixels                          │
-    │  - Buildings area: 11,211 m²                               │
-    └─────────────────────────────────────────────────────────────┘
-    """, language="text")
+
 
 # Footer
 st.markdown("---")
