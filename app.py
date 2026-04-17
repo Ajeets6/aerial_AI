@@ -218,10 +218,10 @@ if uploaded_file is not None:
                     st.metric("Total Panel Area (m²)", f"{stats.get('area_m2', 0):.2f}")
 
     st.markdown("---")
-    st.caption("ℹ️ **Note:** Models are pretrained on Cityscapes/COCO. Fine-tune on aerial datasets for better accuracy.")
+    st.caption("ℹ**Note:** Models are pretrained on Cityscapes/COCO. Fine-tune on aerial datasets for better accuracy.")
 
 else:
-    st.info("👆 Upload an aerial image to begin segmentation")
+    st.info(" Upload an aerial image to begin segmentation")
 
 
 
